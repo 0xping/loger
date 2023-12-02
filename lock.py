@@ -1,5 +1,4 @@
 import subprocess
-import time
 import psutil
 import sys
 
@@ -21,10 +20,12 @@ def reLock():
 	lock()
 
 def is_screen_locked():
+	islocked = False;
 	for proc in psutil.process_iter(['name']):
 		if proc.info['name'] == 'ft_lock':
-			return True
-	return False
+			islocked =  True
+	print(islocked)
+	return islocked
 
 if len(sys.argv) > 1:
 	function_name = sys.argv[1].lower()
@@ -32,5 +33,7 @@ if len(sys.argv) > 1:
 		reLock()
 	elif function_name == "unlock":
 		unLock()
+	elif function_name == "islocked":
+		is_screen_locked()
 	else:
 		print(f"Function '{function_name}' not found")

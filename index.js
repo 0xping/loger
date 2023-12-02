@@ -2,9 +2,7 @@ const { Client, Intents } = require('discord.js');
 const { spawn } = require('child_process');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { SlashCommandBuilder } = require('@discordjs/builders');
 const os = require('os');
-
 
 const client = new Client({
   intents: [
@@ -13,53 +11,83 @@ const client = new Client({
   ],
 });
 
-// Define your commands
 const commands = [
-  new SlashCommandBuilder()
-    .setName('lock')
-    .setDescription('Lock the session')
-    .toJSON(),
-  new SlashCommandBuilder()
-    .setName('unlock')
-    .setDescription('Unlock the session')
-    .toJSON(),
-  new SlashCommandBuilder()
-    .setName('logout')
-    .setDescription('Log out')
-    .toJSON(),
+  {
+    name: 'lock',
+    description: 'Lock the session',
+  },
+  {
+    name: 'unlock',
+    description: 'Unlock the session',
+  },
+  {
+    name: 'logout',
+    description: 'Log out',
+  },
+  {
+    name: 'state',
+    description: 'Get lock screen status',
+  },
 ];
 
 const rest = new REST({ version: '9' }).setToken(process.env.CLIENT_TOKEN);
 
 (async () => {
   try {
-    console.log('Started refreshing application (/) commands.');
-
     await rest.put(
       Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
       { body: commands },
     );
-
-    console.log('Successfully reloaded application (/) commands.');
   } catch (error) {
-    console.error(error);
+    console.error('Error refreshing application (/) commands:', error);
   }
 })();
 
-client.on('interactionCreate', interaction => {
+client.on('interactionCreate', async interaction => {
   const currentTime = new Date();
   if (!interaction.isCommand()) return;
   const { commandName } = interaction;
 
-  if (commandName.toLowerCase() === "lock") {
-    spawn('/usr/bin/python3', ['lock.py', 'lock']);
-    interaction.reply(`\`\`\`Session Locked at ${currentTime.getHours()}:${currentTime.getMinutes()}\`\`\``);
-  } else if(commandName.toLowerCase() === 'unlock') {
-    spawn('/usr/bin/python3', ['lock.py', 'unlock']);
-    interaction.reply(`\`\`\`Session unLocked at ${currentTime.getHours()}:${currentTime.getMinutes()}\`\`\``);
-  }else if (commandName.toLowerCase() === "logout") {
-    interaction.reply(`\`\`\`Session logged out at ${currentTime.getHours()}:${currentTime.getMinutes()}\`\`\``);
-    spawn('/usr/bin/pkill',['-u', `${os.userInfo().username}`]);
+  try {
+    switch (commandName.toLowerCase()) {
+      case 'lock':
+        spawn('/usr/bin/python3', ['lock.py', 'lock']);
+        interaction.reply(`\`\`\`Session Locked at ${currentTime.getHours()}:${currentTime.getMinutes()}\`\`\``);
+        break;
+
+      case 'unlock':
+        spawn('/usr/bin/python3', ['lock.py', 'unlock']);
+        interaction.reply(`\`\`\`Session Unlocked at ${currentTime.getHours()}:${currentTime.getMinutes()}\`\`\``);
+        break;
+
+      case 'logout':
+        interaction.reply(`\`\`\`Session logged out at ${currentTime.getHours()}:${currentTime.getMinutes()}\`\`\``);
+        spawn('/usr/bin/pkill', ['-u', `${os.userInfo().username}`]);
+        break;
+
+      case 'state':
+        const pyProcess = spawn('python3', ['lock.py', 'islocked']);
+        let result = '';
+
+        pyProcess.stdout.on('data', (data) => {
+          result += data.toString();
+        });
+
+        pyProcess.on('close', (code) => {
+          if (code === 0) {
+            const isLocked = result.trim() === 'True';
+            interaction.reply(`\`\`\`Session is ${isLocked ? 'locked' : 'unlocked'}\`\`\``);
+          } else {
+            console.error(`Error executing 'state' command. Exit code: ${code}`);
+          }
+        });
+        break;
+
+      default:
+        console.error(`Unknown command: ${commandName}`);
+    }
+  } catch (error) {
+    console.error('Error processing command:', error);
   }
 });
 
