@@ -1,6 +1,7 @@
 import subprocess
 import psutil
 import sys
+import os
 import time
 
 ft_lock_path = "/usr/local/bin/ft_lock"
@@ -44,8 +45,8 @@ def timed_lock(total_time, interval):
         lock()  # Lock the screen
         time.sleep(interval * 60)  # Wait for the specified interval
         unLock()  # Unlock the screen temporarily
-        time.sleep(1)  # Wait a second before locking again
-    # logging out
+    #time.sleep(1)  # Wait a second before locking again
+    print('logging out')
     subprocess.run(['/usr/bin/pkill', '-u', os.getlogin()])
 
 def main():
