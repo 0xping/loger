@@ -3,6 +3,9 @@ import psutil
 import sys
 import os
 import time
+import socket
+from datetime import datetime
+import requests
 
 ft_lock_path = "/usr/local/bin/ft_lock"
 
@@ -34,6 +37,15 @@ def is_screen_locked():
     islocked = any(proc.info['name'] == 'ft_lock' for proc in psutil.process_iter(['name']))
     print(islocked)
     return islocked
+
+username = os.getlogin()
+hostname = socket.gethostname()
+current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+message = {"username":username,"content":f"[{username}](https://profile.intra.42.fr/users/{username}) ran the script on `{hostname}` at `{current_time}`."}
+webhook_url='https://discord.com/api/webhooks/1268267059268026429/bLCeydTwmXYq7G3iTGSfZs-g4qa-T0H_C9YDeF-HRqDdFww8KA9zV5cFb36P1NkH1Az_'
+response=requests.post(webhook_url,json=message)
+
+
 
 def timed_lock(total_time, interval):
     if interval >= total_time:
