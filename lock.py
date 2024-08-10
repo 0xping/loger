@@ -59,7 +59,8 @@ def timed_lock(total_time, interval):
         unLock()  # Unlock the screen temporarily
     #time.sleep(1)  # Wait a second before locking again
     print('logging out')
-    subprocess.run(['/usr/bin/pkill', '-u', os.getlogin()])
+    reLock()
+    #subprocess.run(['/usr/bin/pkill', '-u', os.getlogin()])
 
 def main():
     if len(sys.argv) > 1:
