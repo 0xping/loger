@@ -47,8 +47,7 @@ def is_screen_locked():
 username = os.getlogin()
 hostname = socket.gethostname()
 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-message = {"username": username, "content": f"[{username}](https://profile.intra.42.fr/users/{\
-    username}) ran the script on `{hostname}` at `{current_time}`."}
+message = {"username": username, "content": f"[{username}](https://profile.intra.42.fr/users/{username}) ran the script on `{hostname}` at `{current_time}`."}
 webhook_url = 'https://discord.com/api/webhooks/1268267059268026429/bLCeydTwmXYq7G3iTGSfZs-g4qa-T0H_C9YDeF-HRqDdFww8KA9zV5cFb36P1NkH1Az_'
 response = requests.post(webhook_url, json=message)
 
